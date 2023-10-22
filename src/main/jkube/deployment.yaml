@@ -1,0 +1,96 @@
+metadata:
+  namespace: ${helm_namespace}
+  labels:
+    project: ${name}
+    version: ${version}
+    app.kubernetes.io/name: ${name}
+    app.kubernetes.io/instance: ${helm_release_name}
+    app.kubernetes.io/version: ${version}
+    app.kubernetes.io/part-of: ${name}
+    app.kubernetes.io/managed-by: helm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      namespace: ${helm_namespace}
+      labels:
+        project: ${name}
+        version: ${version}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ${pull_secret}
+      volumes:
+      - name: liquibase-changelog-volume
+        configMap:
+          name: liquibase-change-log-v1
+      - name: liquibase-properties
+        secret:
+          secretName: db-migration
+      initContainers:
+        - image: ${db_migration_job_image_repo}:${db_migration_job_image_tag}
+          imagePullPolicy: ${image_pull_policy}
+          name: db-migration
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true  
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              memory: ${limits_memory}
+              cpu: ${limits_cpu}
+            requests:
+              memory: ${requests_memory}
+              cpu: ${requests_cpu}
+          command: ["liquibase", "update", "--log-level=debug", "--defaultsFile=/liquibase/properties/liquibase.properties"]
+          volumeMounts:
+          - name: liquibase-changelog-volume
+            mountPath: /liquibase/changelog
+          - name: liquibase-properties
+            mountPath: /liquibase/properties
+      containers:
+        - image: ${image_repo}:${image_tag}
+          imagePullPolicy: ${image_pull_policy}
+          ports:
+          - name: http-web
+            containerPort: 8080
+            port: 8080
+          - name: http-actuator
+            containerPort: 9090
+            port: 9090
+          readinessProbe:
+            httpGet:
+              port: http-actuator
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              port: http-actuator
+              path: /actuator/health/liveness
+            initialDelaySeconds: 60
+            periodSeconds: 1
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true  
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              memory: ${limits_memory}
+              cpu: ${limits_cpu}
+            requests:
+              memory: ${requests_memory}
+              cpu: ${requests_cpu}

@@ -1,0 +1,340 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  helm-lint:
+    name: "Helm Lint"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-java@v3
+      with:
+        distribution: "zulu"
+        java-version: "17"
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - name: Execute Gradle Tasks
+      uses: gradle/gradle-build-action@v2.9.0
+      with:
+        gradle-version: 8.3
+        arguments: k8sResource k8sHelm
+    - name: Run helm lint
+      run: helm lint build/jkube/helm/spring-boot-starter-k8s/kubernetes/
+    - name: Upload Chart
+      uses: actions/upload-artifact@v3
+      with:
+        name: chart
+        path: build/jkube/helm/spring-boot-starter-k8s/kubernetes/
+        retention-days: 7
+  kics:
+    name: KICS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - helm-lint
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: chart
+          path: chart/
+      - name: Render Chart
+        run: |
+          helm dependency build ./chart/
+          helm template kics-test ./chart/ --namespace kics-test --output-dir ./render-result
+      - name: Get Repo Name
+        env: 
+            REPO_FULL_NAME: ${{ github.repository }}
+            ORG_NAME: ${{ github.repository_owner }}
+        run: |
+          export REPO_NAME=${REPO_FULL_NAME#"$ORG_NAME/"}
+          echo "Detected repo name as $REPO_NAME"
+          echo "repo-name=$REPO_NAME" >> "$GITHUB_OUTPUT"
+        id: get-repo-name
+      - name: KICS Scan
+        uses: checkmarx/kics-github-action@v1.7.0
+        with:
+          # scanning two directories: ./terraform/ ./cfn-templates/ plus a single file
+          path: 'render-result/'
+          output_path: kicsResults/
+          output_formats: 'sarif,html'
+          fail_on: high,medium
+          exclude_paths: render-result/${{ steps.get-repo-name.outputs.repo-name }}/charts/postgres,render-result/${{ steps.get-repo-name.outputs.repo-name }}/templates/db-migration-secret.yaml
+          exclude_queries: 611ab018-c4aa-4ba2-b0f6-a448337509a6,aee3c7d2-a811-4201-90c7-11c028be9a46,7c81d34c-8e5a-402b-9798-9f442630e678,8b36775e-183d-4d46-b0f7-96a6f34a723f,4a20ebac-1060-4c81-95d1-1f7f620e983b,48a5beba-e4c0-4584-a2aa-e6894e4cf424,b9c83569-459b-4110-8f79-6305aa33cb37,e84eaf4d-2f45-47b2-abe8-e581b06deb66
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: KICS
+          path: kicsResults
+  java-unit-tests:
+    name: "Test"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "17"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Execute Gradle Tasks
+        uses: gradle/gradle-build-action@v2.9.0
+        with:
+          gradle-version: 8.3
+          arguments: spotlessCheck test jacocoReport bootJar
+      - name: Upload Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: jar
+          path: build/libs
+          retention-days: 7
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: build/jacoco
+          retention-days: 7
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v3
+        with:
+            name: coverage-reports
+            path: build/reports
+            retention-days: 7
+      - name: Output Gradle Version
+        id: version
+        run: |
+          echo "version=$(./gradlew --console=plain -q printVersion)" >> $GITHUB_OUTPUT
+  build-image:
+    name: Build Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    needs:
+      - helm-lint
+      - java-unit-tests
+      - kics
+    timeout-minutes: 10
+    env:
+      REGISTRY: ghcr.io/bryopsida
+      IMAGE_NAME: spring-boot-starter-k8s
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "17"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: jar
+          path: build/libs/
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+        with:
+          platforms: all
+      - name: Setup Docker buildx
+        id: buildx
+        timeout-minutes: 4
+        uses: docker/setup-buildx-action@5d9862498505fcac67b9f455d6e94ec0339f7b90
+      - name: Log into registry
+        timeout-minutes: 5
+        uses: docker/login-action@b4bedf8053341df3b5a9f9e0f2cf4e79e27360c6
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Default Branch Name
+        id: default-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo ":name=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name) >> $GITHUB_OUTPUT"
+      - name: Extract Docker metadata
+        id: meta
+        timeout-minutes: 5
+        uses: docker/metadata-action@879dcbb708d40f8b8679d4f7941b938a086e23a7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+                type=ref,event=branch
+                type=ref,event=pr
+                type=schedule
+                type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', steps.default-branch.outputs.name) }}
+                type=semver,pattern={{version}}
+                type=semver,pattern={{major}}.{{minor}}
+                type=sha
+                type=raw,value={{date 'YYYYMMDD'}}-{{sha}}
+                type=raw,value=${{ needs.java-unit-tests.outputs.version }}
+      - name: Build Docker image
+        id: build
+        timeout-minutes: 25
+        uses: docker/build-push-action@fdf7f43ecf7c1a5c7afe936410233728a8c2d9c2
+        with:
+            context: .
+            load: true
+            push: false
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+            cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+            cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+      - name: Get Short SHA
+        id: short-sha
+        run: |
+            export SHORT_SHA=$(git rev-parse --short HEAD)
+            export SHORT_SHA_TAG_ONLY=sha-$SHORT_SHA
+            echo "sha_short=$SHORT_SHA" >> $GITHUB_OUTPUT
+            echo "build_tag=$SHORT_SHA_TAG_ONLY" >> $GITHUB_OUTPUT
+            echo "sha_tag=${{ env.REGISTRY}}/${{ env.IMAGE_NAME }}:sha-$SHORT_SHA" >> $GITHUB_OUTPUT
+            
+      # ideally this should upload the sarif to something
+      # allowing you to triage vulnerabilties, this requires something like
+      # github advanced security to do so, for now it will fail if vulnerabilities
+      # at the level of crit or high are found.
+      # 
+      # Unfortunately this means the pipeline is blocked if there isn't a way to remove
+      # the CVEs, change the exit code in this case and bring back once fixed
+      - name: Scan image
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.short-sha.outputs.sha_tag }}
+          exit-code: '1'
+          ignore-unfixed: false
+          severity: 'CRITICAL,HIGH'
+      - name: Push image
+        id: push
+        timeout-minutes: 60
+        uses: docker/build-push-action@fdf7f43ecf7c1a5c7afe936410233728a8c2d9c2
+        with:
+            context: .
+            builder: ${{ steps.buildx.outputs.name }}
+            load: false
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+            cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+            cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+            platforms: linux/amd64,linux/arm64
+  helm-install:
+    name: Test Install
+    runs-on: ubuntu-latest
+    needs:
+      - build-image
+      - helm-lint
+    strategy:
+      matrix:
+        k8s-version:
+          - v1.28.2-k3s1
+          - v1.27.6-k3s1
+          - v1.26.9-k3s1
+          - v1.25.14-k3s1
+    timeout-minutes: 15
+    steps:
+      - name: Install K3D
+        run: wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+      - name: Start K3D
+        run: k3d cluster create test-cluster --image rancher/k3s:${{ matrix.k8s-version }}
+      - name: Log into registry
+        timeout-minutes: 5
+        uses: docker/login-action@b4bedf8053341df3b5a9f9e0f2cf4e79e27360c6
+        with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Namespace
+        run: kubectl create namespace test
+      - name: Create Pull Secret in K3D
+        run: kubectl --namespace test create secret docker-registry regcred --docker-username=bryopsida --docker-password=$GITHUB_TOKEN --docker-server=ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: chart
+          path: chart/
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.4.0
+      - name: Install
+        run: ct install --charts chart/ --namespace test
+  helm-upgrade:
+    name: Test Upgrade
+    runs-on: ubuntu-latest
+    needs:
+      - build-image
+      - helm-lint
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        k8s-version:
+          - v1.28.2-k3s1
+          - v1.27.6-k3s1
+          - v1.26.9-k3s1
+          - v1.25.14-k3s1
+    steps:
+      - name: Install K3D
+        run: wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+      - name: Start K3D
+        run: k3d cluster create test-cluster --image rancher/k3s:${{ matrix.k8s-version }}
+      - name: Log into registry
+        timeout-minutes: 5
+        uses: docker/login-action@b4bedf8053341df3b5a9f9e0f2cf4e79e27360c6
+        with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Namespace
+        run: kubectl create namespace test
+      - name: Create Pull Secret in K3D
+        run: kubectl --namespace test create secret docker-registry regcred --docker-username=bryopsida --docker-password=$GITHUB_TOKEN --docker-server=ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: chart
+          path: chart/
+      - name: Get Repo Name
+        env: 
+          REPO_FULL_NAME: ${{ github.repository }}
+          ORG_NAME: ${{ github.repository_owner }}
+        run: |
+          export REPO_NAME=${REPO_FULL_NAME#"$ORG_NAME/"}
+          echo "Detected repo name as $REPO_NAME"
+          echo "repo-name=$REPO_NAME" >> "$GITHUB_OUTPUT"
+        id: get-repo-name
+      # install from OCI (latest version)
+      # adjust this to the oldest version that someone should be able to seemlessly upgrade from
+      # by default this is the latest published version
+      - name: Install Oldest Supported Version
+        run: |
+          helm install test-upgrade oci://ghcr.io/${{ github.repository_owner }}/helm/${{ steps.get-repo-name.outputs.repo-name }} --namespace test --debug --wait
+      - name: Upgrade to PR Version
+        run: |
+          ls -la
+          ls -la ./chart
+          helm dependency build ./chart
+          helm upgrade test-upgrade  ./chart --namespace test --debug --wait
