@@ -3,9 +3,9 @@ package io.github.springboottemplate.repositories;
 
 import io.github.springboottemplate.entities.EchoHistory;
 import java.util.UUID;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EchoHistoryRepository
-    extends ReactiveCrudRepository<EchoHistory, UUID> {}
+    extends CrudRepository<EchoHistory, UUID> {}

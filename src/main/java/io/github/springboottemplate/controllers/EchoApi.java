@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/echo")
@@ -25,51 +23,49 @@ public class EchoApi {
 
     @GetMapping("/history")
     @ResponseStatus(HttpStatus.OK)
-    public Flux<EchoHistory> history() {
+    public Iterable<EchoHistory> history() {
         return echoService.list();
     }
 
     @GetMapping("/hello")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<String> hello() {
-        return echoService
-            .recordHistory(
-                EchoHistory
-                    .builder()
-                    .id(UUID.randomUUID())
-                    .message("Hello")
-                    .timestamp(Instant.now())
-                    .build()
-            )
-            .then(Mono.just("Hello"));
+    public String hello() {
+        echoService.recordHistory(
+            EchoHistory
+                .builder()
+                .id(UUID.randomUUID())
+                .message("Hello")
+                .timestamp(Instant.now())
+                .build()
+        );
+        return "Hello";
     }
 
     @GetMapping("echo/{str}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<String> echo(@PathVariable String str) {
-        return echoService
-            .recordHistory(
-                EchoHistory
-                    .builder()
-                    .id(UUID.randomUUID())
-                    .message("Echo: " + str)
-                    .timestamp(Instant.now())
-                    .build()
-            )
-            .then(Mono.just("Echo: " + str));
+    public String echo(@PathVariable String str) {
+        echoService.recordHistory(
+            EchoHistory
+                .builder()
+                .id(UUID.randomUUID())
+                .message("Echo: " + str)
+                .timestamp(Instant.now())
+                .build()
+        );
+        return "Echo: " + str;
     }
 
     @GetMapping("echoquery")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<String> echoQuery(@RequestParam("name") String name) {
-        return this.echoService.recordHistory(
+    public String echoQuery(@RequestParam("name") String name) {
+        this.echoService.recordHistory(
                 EchoHistory
                     .builder()
                     .id(UUID.randomUUID())
                     .message("Hello, " + name)
                     .timestamp(Instant.now())
                     .build()
-            )
-            .then(Mono.just("Hello, " + name));
+            );
+        return "Hello, " + name;
     }
 }

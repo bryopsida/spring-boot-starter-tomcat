@@ -5,8 +5,6 @@ import io.github.springboottemplate.entities.EchoHistory;
 import io.github.springboottemplate.repositories.EchoHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Service
 public class EchoService {
@@ -14,11 +12,11 @@ public class EchoService {
     @Autowired
     private EchoHistoryRepository repository;
 
-    public Flux<EchoHistory> list() {
+    public Iterable<EchoHistory> list() {
         return repository.findAll();
     }
 
-    public Mono<EchoHistory> recordHistory(EchoHistory history) {
+    public EchoHistory recordHistory(EchoHistory history) {
         return repository.save(history);
     }
 }
