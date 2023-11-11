@@ -25,6 +25,8 @@ spec:
       imagePullSecrets:
         - name: ${pull_secret}
       volumes:
+      - name: tmp
+        emptyDir: {}
       - name: liquibase-changelog-volume
         configMap:
           name: liquibase-change-log-v1
@@ -87,6 +89,9 @@ spec:
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             limits:
               memory: ${limits_memory}
