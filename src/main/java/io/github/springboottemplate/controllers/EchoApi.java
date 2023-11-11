@@ -5,7 +5,6 @@ import io.github.springboottemplate.entities.EchoHistory;
 import io.github.springboottemplate.services.EchoService;
 import java.time.Instant;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/echo")
 public class EchoApi {
 
-    @Autowired
-    protected EchoService echoService;
+    final EchoService echoService;
+
+    public EchoApi(EchoService echoService) {
+        this.echoService = echoService;
+    }
 
     @GetMapping("/history")
     @ResponseStatus(HttpStatus.OK)
