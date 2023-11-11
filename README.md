@@ -12,9 +12,9 @@ It's solely focused on deployment to kubernetes, the primary build artifacts of 
 
 - Gradle
 - Spring Boot
-- Spring Flux
-- Spring R2DBC (Reactive Database)
-- Netty
+- Spring MVC
+- Spring JPA and JDBC
+- Tomcat
 - JKube (Kubernetes Deployment and Development Tools)
 - Liquibase
 
