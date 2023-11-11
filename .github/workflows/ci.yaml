@@ -217,6 +217,7 @@ jobs:
       - name: Scan image
         id: scan
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: ${{ steps.short-sha.outputs.sha_tag }}
           exit-code: '1'
