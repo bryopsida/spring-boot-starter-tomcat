@@ -75,13 +75,23 @@ jobs:
       # use gradle tasks to build the chart
       - name: Execute Gradle Tasks
         uses: gradle/gradle-build-action@v2.9.0
+        with:
+            gradle-version: 8.3
+            arguments: k8sResource k8sHelm
+      - name: Pack Helm Sub Charts
+        run: |
+          cd build/jkube/helm/$(./gradlew --console=plain -q printProjectName)/kubernetes/ && \
+            helm dependency update && \
+            helm dependency build
+      - name: Execute Gradle Tasks
+        uses: gradle/gradle-build-action@v2.9.0
         env:
           HELM_REPO_PATH: "${{ github.repository_owner }}/helm"
           HELM_REPO_USERNAME: "${{ github.actor }}"
           HELM_REPO_PASSWORD: "${{ secrets.GITHUB_TOKEN }}"
         with:
-            gradle-version: 8.3
-            arguments: k8sResource k8sHelm k8sHelmPush
+          gradle-version: 8.3
+          arguments: k8sHelmPush
       # # we've already logged into the registry use helm to push, in the future use k8sHelmPush task
       # - name: Helm Publish
       #   run: |
