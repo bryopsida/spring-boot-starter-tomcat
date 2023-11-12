@@ -21,7 +21,7 @@ build-dependencies:
 	helm dependency build ./build/jkube/helm/spring-boot-starter-tomcat/kubernetes/
 
 deploy: build-chart build-dependencies
-	helm --namespace=$(HELM_NAMESPACE) upgrade --install spring-boot-starter-tomcat ./build/jkube/helm/spring-boot-starter-tomcat/kubernetes/ --set image_tag=local --set image_pull_policy=IfNotPresent
+	helm --namespace=$(HELM_NAMESPACE) upgrade --install spring-boot-starter-tomcat ./build/jkube/helm/spring-boot-starter-tomcat/kubernetes/ --set image.tag=local --set image.pullPolicy=IfNotPresent
 
 template: build-chart build-dependencies
 	helm --namespace=$(HELM_NAMESPACE) template ./build/jkube/helm/spring-boot-starter-tomcat/kubernetes/ --output-dir ./build/template-render-out

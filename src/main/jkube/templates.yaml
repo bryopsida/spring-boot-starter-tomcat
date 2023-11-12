@@ -23,7 +23,7 @@ parameters:
   - name: "image.tag"
     value: "${version}"
   - name: "secretName"
-    value: "app-config-secret"
+    value: "app-config"
   - name: "dbMigration.imageRepo"
     value: "liquibase/liquibase"
   - name: "dbMigration.imageTag"
@@ -31,7 +31,7 @@ parameters:
   - name: "dbMigration.dbSchema"
     value: "public"
   - name: "dbMigration.secretName"
-    value: "db-migration-secret"
+    value: "db-migration"
   # sub chart values
   - name: "postgres.settings.superuserPassword"
     value: "postgres"

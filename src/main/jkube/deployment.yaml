@@ -54,7 +54,7 @@ spec:
               memory: ${limits.memory}
               cpu: ${limits.cpu}
             requests:
-              memory: ${request.memory}
+              memory: ${requests.memory}
               cpu: ${requests.cpu}
           command: ["liquibase", "update", "--log-level=debug", "--defaultsFile=/liquibase/properties/liquibase.properties"]
           volumeMounts:
@@ -68,10 +68,8 @@ spec:
           ports:
           - name: http-web
             containerPort: 8080
-            port: 8080
           - name: http-actuator
             containerPort: 9090
-            port: 9090
           readinessProbe:
             httpGet:
               port: http-actuator
