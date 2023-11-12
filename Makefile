@@ -18,6 +18,7 @@ build-chart:
 	./gradlew k8sResource k8sHelm
 
 build-dependencies:
+	helm dependency update ./build/jkube/helm/spring-boot-starter-tomcat/kubernetes/
 	helm dependency build ./build/jkube/helm/spring-boot-starter-tomcat/kubernetes/
 
 deploy: build-chart build-dependencies
