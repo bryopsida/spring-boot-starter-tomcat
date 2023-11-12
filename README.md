@@ -8,7 +8,7 @@ This is a template repository for kicking off a cloud native spring boot java mi
 
 It's solely focused on deployment to kubernetes, the primary build artifacts of the repository are a OCI image and a helm chart. The helm chart is dynamically generated using jkube and it's associated gradle plugin.
 
-## What opinions have applied to this?
+## What opinions have been added to this?
 
 - Gradle
 - Spring Boot
@@ -17,6 +17,10 @@ It's solely focused on deployment to kubernetes, the primary build artifacts of 
 - Tomcat
 - JKube (Kubernetes Deployment and Development Tools)
 - Liquibase
+
+## How do I deploy?
+
+Use `make deploy`, if the namespace does not exist already run `make create-namespace`
 
 ## How do I run locally?
 
@@ -28,3 +32,17 @@ If you wish to run directly in your IDE:
 
 1. Run `docker-compose up -d` to start the postgres database server.
 2. Run `./gradlew update bootRun`, `update` runs the migrations and `bootRun` launches the spring boot application
+
+## Available Make Targets
+
+| Target             | Description                                                  |
+| ------------------ | ------------------------------------------------------------ |
+| jar                | Builds the standalone jar                                    |
+| image              | Builds the OCI image                                         |
+| run                | Runs the OCI image using docker locally                      |
+| create             | Creates the kubernetes namespace a deploy will go to         |
+| build              | Runs the gradle tasks to build the helm chart                |
+| build-dependencies | Runs the helm tasks to pull in sub chart dependencies        |
+| deploy             | Deploys the chart to your current kubernetes context         |
+| template           | Renders the chart templates to standard kubernetes manifests |
+| kics               | Scan the chart resources with KICS                           |
