@@ -283,6 +283,8 @@ jobs:
           path: chart/
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.6.1
+      - name: Add Helm repos
+        run: helm repo add groundhog2k https://groundhog2k.github.io/helm-charts/
       - name: Install
         run: ct install --charts chart/ --namespace test
   helm-upgrade:
@@ -334,6 +336,8 @@ jobs:
           echo "Detected repo name as $REPO_NAME"
           echo "repo-name=$REPO_NAME" >> "$GITHUB_OUTPUT"
         id: get-repo-name
+      - name: Add Helm repos
+        run: helm repo add groundhog2k https://groundhog2k.github.io/helm-charts/
       # install from OCI (latest version)
       # adjust this to the oldest version that someone should be able to seemlessly upgrade from
       # by default this is the latest published version
