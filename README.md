@@ -35,26 +35,6 @@ If you wish to run directly in your IDE:
 
 ## Available Make Targets
 
-jar:
-./gradlew bootJar
-
-.PHONY: image
-image: jar
-
-run:
-
-create-namespace:
-
-build-chart:
-
-build-dependencies:
-
-deploy: build-chart build-dependencies
-
-template: build-chart build-dependencies
-
-kics: template
-
 | Target             | Description                                                  |
 | ------------------ | ------------------------------------------------------------ |
 | jar                | Builds the standalone jar                                    |
