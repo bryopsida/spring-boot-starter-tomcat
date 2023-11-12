@@ -43,12 +43,6 @@ parameters:
     value: "spring-boot-starter"
   - name: "postgres.podSecurityContext.seccompProfile.type"
     value: "RuntimeDefault"
-  - name: "postgres.podSecurityContext.fsGroup"
-    value: 10001
-  - name: "postgres.securityContext.runAsGroup"
-    value: 10001
-  - name: "postgres.securityContext.runAsUser"
-    value: 10001
   - name: "postgres.userDatabase.password"
     value: "changeit"
   - name: "postgres.fullnameOverride"
