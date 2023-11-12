@@ -32,7 +32,10 @@ spec:
           name: liquibase-change-log-v1
       - name: liquibase-properties
         secret:
-          secretName: db-migration
+          secretName: ${dbMigration.secretName}
+      - name: app-properties
+        secret:
+          secretName: ${secretName}
       initContainers:
         - image: ${dbMigration.imageRepo}:${dbMigration.imageTag}
           imagePullPolicy: ${image.pullPolicy}
@@ -92,6 +95,9 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: app-properties
+              mountPath: /app/application-k8s.properties
+              subPath: application-k8s.properties
           resources:
             limits:
               memory: ${limits.memory}
