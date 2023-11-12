@@ -1,5 +1,5 @@
 /* (C) 2023 */
-package io.github.springboottemplate.entities;
+package io.github.bryopsida.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

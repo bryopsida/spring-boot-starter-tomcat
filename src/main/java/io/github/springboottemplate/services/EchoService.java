@@ -1,8 +1,8 @@
 /* (C) 2023 */
-package io.github.springboottemplate.services;
+package io.github.bryopsida.services;
 
-import io.github.springboottemplate.entities.EchoHistory;
-import io.github.springboottemplate.repositories.EchoHistoryRepository;
+import io.github.bryopsida.entities.EchoHistory;
+import io.github.bryopsida.repositories.EchoHistoryRepository;
 import org.springframework.stereotype.Service;
 
 @Service

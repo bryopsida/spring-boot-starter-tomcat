@@ -1,8 +1,8 @@
 /* (C) 2023 */
-package io.github.springboottemplate.controllers;
+package io.github.bryopsida.controllers;
 
-import io.github.springboottemplate.entities.EchoHistory;
-import io.github.springboottemplate.services.EchoService;
+import io.github.bryopsida.entities.EchoHistory;
+import io.github.bryopsida.services.EchoService;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;

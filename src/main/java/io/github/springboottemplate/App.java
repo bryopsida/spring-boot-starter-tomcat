@@ -1,5 +1,5 @@
 /* (C) 2023 */
-package io.github.springboottemplate;
+package io.github.bryopsida;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

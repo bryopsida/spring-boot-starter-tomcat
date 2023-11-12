@@ -1,7 +1,7 @@
 /* (C) 2023 */
-package io.github.springboottemplate.repositories;
+package io.github.bryopsida.repositories;
 
-import io.github.springboottemplate.entities.EchoHistory;
+import io.github.bryopsida.entities.EchoHistory;
 import java.util.UUID;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

@@ -1,5 +1,5 @@
 /* (C) 2023 */
-package io.github.springboottemplate.config;
+package io.github.bryopsida.config;
 
 import org.springframework.context.annotation.Configuration;
 
