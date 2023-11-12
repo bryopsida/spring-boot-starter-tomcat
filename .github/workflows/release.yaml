@@ -81,6 +81,7 @@ jobs:
       - name: Pack Helm Sub Charts
         run: |
           cd build/jkube/helm/$(./gradlew --console=plain -q printProjectName)/kubernetes/ && \
+            helm repo add groundhog2k https://groundhog2k.github.io/helm-charts/
             helm dependency update && \
             helm dependency build
       - name: Execute Gradle Tasks
