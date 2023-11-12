@@ -1,8 +1,0 @@
-kind: Template
-parameters:
-  - name: helm_namespace
-    value: |
-        {{ .Release.Namespace }}
-  - name: helm_release_name
-    value: |
-        {{ .Release.Name }}

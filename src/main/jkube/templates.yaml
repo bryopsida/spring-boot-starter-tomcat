@@ -1,14 +1,20 @@
 kind: Template
 parameters:
-  - name: limits.memory
+  - name: helm_namespace
+    value: |
+        {{ .Release.Namespace }}
+  - name: helm_release_name
+    value: |
+        {{ .Release.Name }}
+  - name: "limits.memory"
     value: "512Mi"
-  - name: requests.memory
+  - name: "requests.memory"
     value: "256Mi"
-  - name: requests.cpu
+  - name: "requests.cpu"
     value: "512m"
   - name: "limits.cpu"
     value: "1024m"
-  - name: imagePullSecret
+  - name: "imagePullSecret"
     value: "regcred"
   - name: "image.pullPolicy"
     value: "Always"
@@ -29,7 +35,7 @@ parameters:
   # sub chart values
   - name: "postgres.settings.superuserPassword"
     value: "postgres"
-  - namme: "postgres.settings.superuser"
+  - name: "postgres.settings.superuser"
     value: "postgres"
   - name: "postgres.userDatabase.name"
     value: "spring-boot-starter"
