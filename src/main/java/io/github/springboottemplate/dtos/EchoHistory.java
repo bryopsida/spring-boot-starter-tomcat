@@ -1,4 +1,4 @@
 /* (C) 2023 */
-package io.github.springboottemplate.dtos;
+package io.github.bryopsida.dtos;
 
 public interface EchoHistory {}

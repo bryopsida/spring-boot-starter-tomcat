@@ -46,3 +46,12 @@ If you wish to run directly in your IDE:
 | deploy             | Deploys the chart to your current kubernetes context         |
 | template           | Renders the chart templates to standard kubernetes manifests |
 | kics               | Scan the chart resources with KICS                           |
+
+# Post Template Use Checklist
+
+- [ ] Find and replace all references to `io.github.bryopsida` with appropriate values for your project
+- [ ] Find and replace all references to `spring-boot-starter` with appropriate values for your project
+- [ ] Find and replace all references to `spring-boot-starter-tomcat` with appropriate values for your poject
+- [ ] Find and replace all references to `bryopsida` with appropriate values for your project
+- [ ] Adjust renovate.json (or remove) settings to meet your needs
+- [ ] After a successful image build, create your first release to trigger a helm publish, this is needed for the upgrade tests to pass

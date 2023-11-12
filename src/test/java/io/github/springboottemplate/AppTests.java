@@ -1,5 +1,5 @@
 /* (C) 2023 */
-package io.github.springboottemplate;
+package io.github.bryopsida;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
