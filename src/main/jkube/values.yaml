@@ -17,7 +17,7 @@ parameters:
   - name: "image.tag"
     value: "${version}"
   - name: "secretName"
-    value: "app-config"
+    value: "app-config-secret"
   - name: "dbMigration.imageRepo"
     value: "liquibase/liquibase"
   - name: "dbMigration.imageTag"
