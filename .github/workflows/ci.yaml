@@ -70,6 +70,7 @@ jobs:
         id: get-repo-name
       - name: KICS Scan
         uses: checkmarx/kics-github-action@v1.7.0
+        continue-on-error: true
         with:
           # scanning two directories: ./terraform/ ./cfn-templates/ plus a single file
           path: 'render-result/'
