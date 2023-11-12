@@ -136,7 +136,7 @@ kubernetes {
 		dependencies = [{
 			name = 'postgres'
 			repository = 'https://groundhog2k.github.io/helm-charts/'
-			version = '0.4.6'
+			version = '0.5.0'
 			condition = 'postgres.enabled'
 		}]
 	}

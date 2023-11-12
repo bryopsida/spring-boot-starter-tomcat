@@ -23,7 +23,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       imagePullSecrets:
-        - name: ${pull_secret}
+        - name: ${imagePullSecret}
       volumes:
       - name: tmp
         emptyDir: {}
@@ -32,10 +32,13 @@ spec:
           name: liquibase-change-log-v1
       - name: liquibase-properties
         secret:
-          secretName: db-migration
+          secretName: ${dbMigration.secretName}
+      - name: app-properties
+        secret:
+          secretName: ${secretName}
       initContainers:
-        - image: ${db_migration_job_image_repo}:${db_migration_job_image_tag}
-          imagePullPolicy: ${image_pull_policy}
+        - image: ${dbMigration.imageRepo}:${dbMigration.imageTag}
+          imagePullPolicy: ${image.pullPolicy}
           name: db-migration
           securityContext:
             runAsUser: 10001
@@ -48,11 +51,11 @@ spec:
                 - ALL
           resources:
             limits:
-              memory: ${limits_memory}
-              cpu: ${limits_cpu}
+              memory: ${limits.memory}
+              cpu: ${limits.cpu}
             requests:
-              memory: ${requests_memory}
-              cpu: ${requests_cpu}
+              memory: ${requests.memory}
+              cpu: ${requests.cpu}
           command: ["liquibase", "update", "--log-level=debug", "--defaultsFile=/liquibase/properties/liquibase.properties"]
           volumeMounts:
           - name: liquibase-changelog-volume
@@ -60,15 +63,13 @@ spec:
           - name: liquibase-properties
             mountPath: /liquibase/properties
       containers:
-        - image: ${image_repo}:${image_tag}
-          imagePullPolicy: ${image_pull_policy}
+        - image: ${image.repo}:${image.tag}
+          imagePullPolicy: ${image.pullPolicy}
           ports:
           - name: http-web
             containerPort: 8080
-            port: 8080
           - name: http-actuator
             containerPort: 9090
-            port: 9090
           readinessProbe:
             httpGet:
               port: http-actuator
@@ -92,10 +93,13 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: app-properties
+              mountPath: /app/application-k8s.properties
+              subPath: application-k8s.properties
           resources:
             limits:
-              memory: ${limits_memory}
-              cpu: ${limits_cpu}
+              memory: ${limits.memory}
+              cpu: ${limits.cpu}
             requests:
-              memory: ${requests_memory}
-              cpu: ${requests_cpu}
+              memory: ${requests.memory}
+              cpu: ${requests.cpu}

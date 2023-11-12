@@ -1,43 +1,50 @@
 kind: Template
 parameters:
-  - name: limits_memory
+  - name: helm_namespace
+    value: |
+        {{ .Release.Namespace }}
+  - name: helm_release_name
+    value: |
+        {{ .Release.Name }}
+  - name: "limits.memory"
     value: "512Mi"
-  - name: requests_memory
+  - name: "requests.memory"
     value: "256Mi"
-  - name: requests_cpu
+  - name: "requests.cpu"
     value: "512m"
-  - name: "limits_cpu"
+  - name: "limits.cpu"
     value: "1024m"
-  - name: pull_secret
+  - name: "imagePullSecret"
     value: "regcred"
-  - name: image_repo
-    value: "ghcr.io/bryopsida/${name}"
-  - name: image_tag
-    value: "${version}"
-  - name: "db_migration_job_image_repo"
-    value: "liquibase/liquibase"
-  - name: "db_migration_job_image_tag"
-    value: "4.24-alpine"
-  - name: "database_host"
-    value: "postgres"
-  - name: "database_port"
-    value: "5432"
-  - name: "database_name"
-    value: "spring-boot-starter"
-  - name: "database_schema"
-    value: "public"
-  - name: image_pull_policy
+  - name: "image.pullPolicy"
     value: "Always"
+  - name: "image.repo"
+    value: "ghcr.io/bryopsida/${name}"
+  - name: "image.tag"
+    value: "${version}"
+  - name: "secretName"
+    value: "app-config"
+  - name: "dbMigration.imageRepo"
+    value: "liquibase/liquibase"
+  - name: "dbMigration.imageTag"
+    value: "4.24-alpine"
+  - name: "dbMigration.dbSchema"
+    value: "public"
+  - name: "dbMigration.secretName"
+    value: "db-migration"
+  # sub chart values
   - name: "postgres.settings.superuserPassword"
+    value: "postgres"
+  - name: "postgres.settings.superuser"
     value: "postgres"
   - name: "postgres.userDatabase.name"
     value: "spring-boot-starter"
   - name: "postgres.userDatabase.user"
-    value: "spring-boot-starter"
-  - name: "postgres.podSecurityContext.seccompProfile.type"
-    value: "RuntimeDefault"
+    value: "tomcat"
   - name: "postgres.userDatabase.password"
     value: "changeit"
+  - name: "postgres.podSecurityContext.seccompProfile.type"
+    value: "RuntimeDefault"
   - name: "postgres.fullnameOverride"
     value: "postgres"
   - name: "postgres.resources.limits.cpu"
@@ -48,9 +55,3 @@ parameters:
     value: "512Mi"
   - name: "postgres.resources.requests.memory"
     value: "512Mi"
-  - name: helm_namespace
-    value: |
-        {{ .Release.Namespace }}
-  - name: helm_release_name
-    value: |
-        {{ .Release.Name }}
