@@ -58,7 +58,7 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 
 
-	liquibaseRuntime 'org.liquibase:liquibase-core:4.33.0'
+	liquibaseRuntime 'org.liquibase:liquibase-core:5.0.0'
 	liquibaseRuntime 'org.liquibase:liquibase-groovy-dsl:4.0.1'
 	liquibaseRuntime 'info.picocli:picocli:4.7.7'
 	liquibaseRuntime "org.postgresql:postgresql"
