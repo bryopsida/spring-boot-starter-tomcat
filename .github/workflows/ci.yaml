@@ -22,7 +22,7 @@ jobs:
         java-version: "17"
     - uses: actions/setup-node@v6
       with:
-        node-version: 22
+        node-version: 24
     - name: Execute Gradle Tasks
       uses: gradle/gradle-build-action@v3.5.0
       with:
@@ -99,7 +99,7 @@ jobs:
           java-version: "17"
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
       - name: Execute Gradle Tasks
         uses: gradle/gradle-build-action@v3.5.0
         with:
@@ -151,7 +151,7 @@ jobs:
           java-version: "17"
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
       - name: Download Artifacts
         uses: actions/download-artifact@v6
         with:
