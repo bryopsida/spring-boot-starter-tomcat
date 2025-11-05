@@ -282,7 +282,7 @@ jobs:
           name: chart
           path: chart/
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.7.0
+        uses: helm/chart-testing-action@v2.8.0
       - name: Add Helm repos
         run: helm repo add groundhog2k https://groundhog2k.github.io/helm-charts/
       - name: Install
